@@ -1,0 +1,383 @@
+#!/bin/bash
+
+# https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+# tput setab (1-7)
+# tput setaf (1-7)
+#Num  Colour    #define         R G B
+#0    black     COLOR_BLACK     0,0,0
+#1    red       COLOR_RED       1,0,0
+#2    green     COLOR_GREEN     0,1,0
+#3    yellow    COLOR_YELLOW    1,1,0
+#4    blue      COLOR_BLUE      0,0,1
+#5    magenta   COLOR_MAGENTA   1,0,1
+#6    cyan      COLOR_CYAN      0,1,1
+#7    white     COLOR_WHITE     1,1,1
+
+commentOpen() {
+
+    { set +x; } 2>/dev/null
+    tput setaf 1
+
+
+}
+
+commentClose() {
+
+
+    tput setaf 7
+    set -x 
+
+}
+
+stripsOnTablePrompt() { 
+
+    { set +x; } 2>/dev/null
+    while true; do
+        printf "\n"
+        printf "$(tput setaf 0)$(tput setab 6)How many strips have been removed? Count the strips on the table.$(tput setaf 7)$(tput setab 0)\n"
+        printf "\n"
+        read input 
+        expr $input + 0 
+        if [ $input -ge 0 ] && [ $input -le 21 ]; then 
+
+            stripsOnTable=$input
+            break;
+
+        else 
+
+            printf "\n"
+            printf "$(tput setab 1)$(tput setaf 0)Error: Invalid character$(tput setab 0)$(tput setaf 7)\n"
+
+        fi;
+
+    done
+
+}
+
+textPlotPrompt() {
+
+
+    { set +x; } 2>/dev/null
+    while true; do
+        printf "\n"
+        printf "$(tput setaf 6)Do you want to generate a live plot of the data? [y/n]$(tput setaf 7)\n"
+        printf "\n"
+        read yn
+        if [ $yn == "y" ] ; then 
+
+
+            tput setaf 6
+            printf "\n"
+            printf "Data start\n"
+            tput setaf 7
+            particle serial monitor > $projectDir/experiments/$fileName &
+            printf "Running in background...\n"
+
+            cd $projectDir/experiments
+
+            break;
+
+        elif [ $yn == "n" ] ; then
+
+            tput setaf 6
+            printf "\n"
+            printf "Data start\n"
+            tput setaf 7
+            printf "Press Q to exit serial monitor\n"
+            particle serial monitor --follow 2>&1 | tee $projectDir/experiments/$fileName &
+            break;
+
+
+        else 
+
+            printf "\n"
+            printf "$(tput setab 1)$(tput setaf 0)Error: Invalid character$(tput setab 0)$(tput setaf 7)\n"
+
+        fi;
+
+    done
+
+}
+
+
+reset
+
+#Make fullscreen
+xdotool windowsize $(xdotool getactivewindow) 100% 100%
+
+tput setaf 7
+
+printf "\n"
+
+printf "888b    888 8888888 .d8888b.  888    888 88888888888 8888888 888b    888  .d8888b.         d8888 888      8888888888         $(tput setaf 1)####$(tput setaf 7)\n"
+printf "8888b   888   888  d88P  Y88b 888    888     888       888   8888b   888 d88P  Y88b       d88888 888      888                $(tput setaf 1)####$(tput setaf 7)\n"        
+printf "88888b  888   888  888    888 888    888     888       888   88888b  888 888    888      d88P888 888      888                $(tput setaf 1)####$(tput setaf 7)\n"     
+printf "888Y88b 888   888  888        8888888888     888       888   888Y88b 888 888            d88P 888 888      8888888      $(tput setaf 1)################$(tput setaf 7)\n"    
+printf "888 Y88b888   888  888  88888 888    888     888       888   888 Y88b888 888  88888    d88P  888 888      888          $(tput setaf 1)################$(tput setaf 7)\n"       
+printf "888  Y88888   888  888    888 888    888     888       888   888  Y88888 888    888   d88P   888 888      888                $(tput setaf 1)####$(tput setaf 7)\n"     
+printf "888   Y8888   888  Y88b  d88P 888    888     888       888   888   Y8888 Y88b  d88P  d8888888888 888      888                $(tput setaf 1)####$(tput setaf 7)\n"      
+printf "888    Y888 8888888 'Y8888P88 888    888     888     8888888 888    Y888  'Y8888P88 d88P     888 88888888 8888888888         $(tput setaf 1)####$(tput setaf 7)\n"
+
+printf "\n"
+
+# Allows for executed commands to be printed to console
+{ set +x; } 2>/dev/null
+{ tput setaf 1; } 2>/dev/null
+printf "\n"
+printf "//Creates date that will be used in the file process \n"
+commentClose
+
+# Creates a variable that has the date and time when executed
+# Format is: YYYY/MM/DD-@-24:00
+now=$(date '+%F-@-%T');
+
+{ set +x; } 2>/dev/null
+{ tput setaf 1; } 2>/dev/null
+printf "\n"
+printf "//Generates a file with a name based on the date and time \n"
+commentClose
+
+# Creates a string with the appropriate tag and file extension
+fileName="raw-measurement-$now.txt"
+
+# Creates file with fileName
+touch experiments/$fileName
+
+{ set +x; } 2>/dev/null
+{ tput setaf 1; } 2>/dev/null
+printf "\n"
+printf "//Saves the current directory so the script can return to here later \n"
+commentClose
+
+#projectDir="${PWD##*/}"
+projectDir=${PWD}
+
+{ set +x; } 2>/dev/null
+{ tput setaf 1; } 2>/dev/null
+printf "\n"
+printf "//Finds the folder that the particle is located in then changes the current directory to where it is \n"
+commentClose
+
+projectDir=${PWD}
+
+photonDir="$(which particle)"
+
+photonDir=${photonDir/particle/}
+
+# Changes to parent directory to execute command
+cd $photonDir
+
+{ set +x; } 2>/dev/null
+tput setaf 1
+printf "\n"
+printf "//Begin listening to photon \n"
+commentClose
+
+
+input=$projectDir 
+
+cd $projectDir/bashCode/
+
+#Reads the text file that contains what current session we're at 
+#A session is an experiment
+while IFS= read -r line; do
+    experimentVar=$line
+done < experimentNum.txt
+
+cd $projectDir
+
+{ set +x; } 2>/dev/null
+while true; do
+    printf "\n"
+    printf "$(tput setaf 6)Create new experiment? [y/n]$(tput setaf 7)\n"
+    printf "\n"
+    read yn
+    if [ $yn == "y" ] ; then 
+
+        #Increments the variable that represents the current experimental session
+        experimentVar=$((experimentVar+1))
+
+        #Combines the number variable into a string in preperation to create a new directory
+        #sessionName is also the third command line argument to the convert.py program
+        experimentName="experiment$experimentVar-${now}"
+
+        #Appends the string just created with the date and time of when this script ran
+        dirName=$experimentName
+
+        #Creates a directory that will contain all converted experimental files
+        mkdir $projectDir/tables/$dirName
+
+        #Go back to the directory that contains the text file that defines what session number we are on
+        cd $projectDir/bashCode/
+
+        #Removes file
+        rm experimentNum.txt
+
+        #Recreates file but now with an updated session value
+        echo $experimentVar >> experimentNum.txt
+
+        #Go back to the main directory to continue with the rest of our project
+        cd $projectDir
+        break;
+
+    elif [ $yn == "n" ] ; then
+
+        #
+        experimentName="experiment$experimentVar"
+
+        cd $projectDir
+        break;
+
+    else 
+
+        printf "\n"
+        printf "$(tput setab 1)$(tput setaf 0)Error: Invalid character$(tput setab 0)$(tput setaf 7)\n"
+
+    fi;
+
+done
+
+
+{ set +x; } 2>/dev/null
+while true; do
+    printf "\n"
+    printf "$(tput setaf 6)Do you want to view the program's output in real time? [y/n]$(tput setaf 7)\n"
+    printf "\n"
+    read yn
+    if [ $yn == "y" ] ; then 
+
+        tput setaf 6
+        printf "\n"
+        printf "Data start\n"
+        tput setaf 7
+        printf "Press Q to exit serial monitor\n"
+        particle serial monitor --follow 2>&1 | tee $projectDir/experiments/$fileName &
+        break;
+
+    elif [ $yn == "n" ] ; then
+
+        tput setaf 6
+        printf "\n"
+        printf "Data start\n"
+        tput setaf 7
+        particle serial monitor > $projectDir/experiments/$fileName &
+        printf "Running in background...\n"
+        break;
+
+    else 
+
+        printf "\n"
+        printf "$(tput setab 1)$(tput setaf 0)Error: Invalid character$(tput setab 0)$(tput setaf 7)\n"
+
+    fi;
+
+done
+
+while true; do
+
+    read -rsn1 input
+    if [ $input == "q" ] ; then
+
+        break;
+
+    else 
+
+        printf "$(tput setab 1)$(tput setaf 0)Press Q to exit$(tput setab 0)$(tput setaf 7)\n"
+
+    fi;
+
+done
+set -x
+
+pkill -9 "particle serial"
+
+stripsOnTable=0
+
+{ set +x; } 2>/dev/null
+while true; do
+    printf "\n"
+    printf "$(tput setaf 0)$(tput setab 6)Do you want to save the script? [y/n]$(tput setaf 7)$(tput setab 0)\n"
+    printf "\n"
+    read yn
+    if [ $yn == "y" ] ; then 
+
+        cd $projectDir
+        cd tables
+        stripsOnTablePrompt
+        printf "Number of strips: $stripsOnTable\n"
+        printf "\n"
+        
+        #python3 convert.py $fileName $stripsOnTable $experimentName $projectDir
+        python3 convert.py $fileName $stripsOnTable $experimentName $projectDir
+        cd ..
+        break;
+
+    elif [ $yn == "n" ] ; then
+
+        rm $projectDir/experiments/$fileName
+        break;
+
+    else 
+
+        printf "\n"
+        printf "$(tput setab 1)$(tput setaf 0)Error: Invalid character$(tput setab 0)$(tput setaf 7)\n"
+
+    fi;
+
+done
+
+{ set +x; } 2>/dev/null
+while true; do
+    printf "\n"
+    printf "$(tput setaf 6)View matlab plot? [y/n]$(tput setaf 7)\n"
+    printf "\n"
+    read yn
+    if [ $yn == "y" ] ; then 
+
+        cd /usr/local/MATLAB/R2019b/bin
+        ./matlab -r "run('/home/zethuria/bin/nightingale/tables/interpret.m');exit;" > /dev/null &
+        break;
+
+    elif [ $yn == "n" ] ; then
+
+        printf "\n"
+        printf "$(tput setaf 6)Exited$(tput setaf 7)\n"
+        break;
+
+    else 
+
+        printf "\n"
+        printf "$(tput setab 1)$(tput setaf 0)Error: Invalid character$(tput setab 0)$(tput setaf 7)\n"
+
+    fi;
+
+done
+
+{ set +x; } 2>/dev/null
+while true; do
+    printf "\n"
+    printf "$(tput setaf 6)Restart script? [y/n]$(tput setaf 7)\n"
+    printf "\n"
+    read yn
+    if [ $yn == "y" ] ; then 
+
+        cd $projectDir
+        ./run.bh
+        break;
+
+    elif [ $yn == "n" ] ; then
+
+        printf "\n"
+        printf "$(tput setaf 6)Exited$(tput setaf 7)\n"
+        break;
+
+    else 
+
+        printf "\n"
+        printf "$(tput setab 1)$(tput setaf 0)Error: Invalid character$(tput setab 0)$(tput setaf 7)\n"
+
+    fi;
+
+done
+
+
